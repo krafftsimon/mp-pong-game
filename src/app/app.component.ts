@@ -18,6 +18,7 @@ export class AppComponent implements OnInit {
   player1: Player;
   player2: Player;
   ball: Ball;
+  pendingInputs = []; //Inputs awaiting to be confirmed by the server
 
   constructor(private gameService: GameService) {
     this.player1 = new Player(20);
@@ -73,8 +74,28 @@ export class AppComponent implements OnInit {
   processServerData() {
     this.gameService.getState().subscribe(
       data => {
-        this.player1.y = data[this.roomNum - 1].player1.y;
-        this.player2.y = data[this.roomNum - 1].player2.y;
+        if (this.clientPlayerNum === 1) {
+          this.player2.y = data[this.roomNum - 1].player2.y  // Update player 2 position
+          let inputs = data[this.roomNum - 1].inputsP1
+          // Verify that client prediction matches server
+          for (let i in inputs) {
+            if (inputs[i].result != this.pendingInputs[i]) {
+              this.player1.y = data[this.roomNum - 1].player1.y;
+            }
+          }
+          this.pendingInputs = []
+        }
+        if (this.clientPlayerNum === 2) {
+          this.player1.y = data[this.roomNum - 1].player1.y  // Update player 1 position
+          let inputs = data[this.roomNum - 1].inputsP2
+          // Verify that client prediction matches server
+          for (let i in inputs) {
+            if (inputs[i].result != this.pendingInputs[i]) {
+              this.player2.y = data[this.roomNum - 1].player2.y;
+            }
+          }
+          this.pendingInputs = []
+        }
         this.ball.x = data[this.roomNum - 1].ball.x;
         this.ball.y = data[this.roomNum - 1].ball.y;
       }
@@ -89,10 +110,13 @@ export class AppComponent implements OnInit {
     // Client-side prediction.
     if (this.clientPlayerNum === 1) {
       this.player1.applyInput(input);
+      //Store the input and the result of the prediction for reconciliation
+      this.pendingInputs.push({input: input, predictedPosition: this.player1.y})
     } else {
       this.player2.applyInput(input);
+      //Store the input and the result of the prediction for reconciliation
+      this.pendingInputs.push({input: input, predictedPosition: this.player2.y})
     }
-
   }
 
   drawCanvas() {

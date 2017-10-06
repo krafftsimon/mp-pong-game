@@ -62,22 +62,22 @@ io.on('connection', function(socket) {
 
 //game physics loop
 setInterval(function() {
-  for (i in rooms) {
-    processInputs(i)
-    moveBall(i)
+  for (let i in rooms) {
+    processInputs(i);
+    moveBall(i);
   }
-  sendGameState()
+  sendGameState();
 }, 1000 / updateRate);
 
 function processInputs(i) {
-  for (y in rooms[i].inputsP1) {
-    rooms[i].player1.applyInput(rooms[i].inputsP1[y])
+  for (let y in rooms[i].inputsP1) {
+    rooms[i].player1.applyInput(rooms[i].inputsP1[y]);
+    rooms[i].inputsP1[y].result = rooms[i].player1.y;
   }
-  for (y in rooms[i].inputsP2) {
-    rooms[i].player2.applyInput(rooms[i].inputsP2[y])
+  for (let y in rooms[i].inputsP2) {
+    rooms[i].player2.applyInput(rooms[i].inputsP2[y]);
+    rooms[i].inputsP2[y].result = rooms[i].player2.y;
   }
-  rooms[i].inputsP1 = [];
-  rooms[i].inputsP2 = [];
 }
 
 function moveBall(i) {
@@ -86,6 +86,11 @@ function moveBall(i) {
 
 function sendGameState() {
   io.sockets.emit('gameState', rooms);
+  //clear list of inputs received for the next update
+  for (let i in rooms) {
+    rooms[i].inputsP1 = [];
+    rooms[i].inputsP2 = [];
+  }
 }
 
 server.listen(port, () => console.log(`Running on localhost:${port}`));

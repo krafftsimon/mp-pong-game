@@ -26,8 +26,9 @@ const io = require('socket.io')(server);
 let roomNum = 1;
 let playerNum = 1;
 let updateRate = 10;
+let ballUpdateRate = 50;
 let inputs = []
-let rooms = [{player1: new Player(20), player2: new Player(760), ball: new Ball() , inputsP1: [], inputsP2: []}]
+let rooms = [{player1: new Player(20), player2: new Player(760), ball: new Ball() , inputsP1: [], inputsP2: [], ballSteps: []}]
 
 // Whenever someone connects this gets executed.
 io.on('connection', function(socket) {
@@ -35,7 +36,7 @@ io.on('connection', function(socket) {
   if(io.nsps['/'].adapter.rooms["room-" + roomNum] && io.nsps['/'].adapter.rooms["room-" + roomNum].length > 1) {
      roomNum++;
      playerNum = 1;
-     rooms.push({player1: new Player(20), player2: new Player(760), ball: new Ball() , inputsP1: [], inputsP2: []});
+     rooms.push({player1: new Player(20), player2: new Player(760), ball: new Ball() , inputsP1: [], inputsP2: [], ballSteps: []});
   }
   socket.join("room-" + roomNum);
   // Send this event to everyone in the room.
@@ -64,10 +65,15 @@ io.on('connection', function(socket) {
 setInterval(function() {
   for (let i in rooms) {
     processInputs(i);
-    moveBall(i);
   }
   sendGameState();
 }, 1000 / updateRate);
+
+setInterval(function() {
+  for (let i in rooms) {
+    moveBall(i);
+  }
+}, 1000 / ballUpdateRate);
 
 function processInputs(i) {
   for (let y in rooms[i].inputsP1) {
@@ -81,15 +87,19 @@ function processInputs(i) {
 }
 
 function moveBall(i) {
-  rooms[i].ball.move();
+  // Move the ball.
+  rooms[i].ball.move(rooms[i].player1, rooms[i].player2);
+  // Save the new position of the ball.
+  rooms[i].ballSteps.push({x: rooms[i].ball.x, y: rooms[i].ball.y});
 }
 
 function sendGameState() {
   io.sockets.emit('gameState', rooms);
-  //clear list of inputs received for the next update
+  //clear list of inputs received and ball steps for the next update
   for (let i in rooms) {
     rooms[i].inputsP1 = [];
     rooms[i].inputsP2 = [];
+    rooms[i].ballSteps = [];
   }
 }
 

@@ -18,7 +18,9 @@ export class AppComponent implements OnInit {
   player1: Player;
   player2: Player;
   ball: Ball;
+  interpolationInputs = [];
   pendingInputs = []; //Inputs awaiting to be confirmed by the server
+  ballSteps = [];
 
   constructor(private gameService: GameService) {
     this.player1 = new Player(20);
@@ -68,14 +70,16 @@ export class AppComponent implements OnInit {
   updateGame() {
     this.processServerData();
     this.processUserInputs();
+    this.interpolate();
     this.drawCanvas();
   }
 
   processServerData() {
     this.gameService.getState().subscribe(
       data => {
+        // Reconciliation.
         if (this.clientPlayerNum === 1) {
-          this.player2.y = data[this.roomNum - 1].player2.y  // Update player 2 position
+          this.interpolationInputs = data[this.roomNum - 1].inputsP2; // Save inputs of other player for interpolation
           let inputs = data[this.roomNum - 1].inputsP1
           // Verify that client prediction matches server
           for (let i in inputs) {
@@ -86,7 +90,7 @@ export class AppComponent implements OnInit {
           this.pendingInputs = []
         }
         if (this.clientPlayerNum === 2) {
-          this.player1.y = data[this.roomNum - 1].player1.y  // Update player 1 position
+          this.interpolationInputs = data[this.roomNum - 1].inputsP1; // Save inputs of other player for interpolation
           let inputs = data[this.roomNum - 1].inputsP2
           // Verify that client prediction matches server
           for (let i in inputs) {
@@ -96,8 +100,7 @@ export class AppComponent implements OnInit {
           }
           this.pendingInputs = []
         }
-        this.ball.x = data[this.roomNum - 1].ball.x;
-        this.ball.y = data[this.roomNum - 1].ball.y;
+        this.ballSteps = data[this.roomNum - 1].ballSteps; // Save ball steps for interpolation
       }
     )
   }
@@ -119,6 +122,20 @@ export class AppComponent implements OnInit {
     }
   }
 
+  interpolate() {
+    this.ball.x = this.ballSteps[0].x;
+    this.ball.y = this.ballSteps[0].y;
+    this.ballSteps.shift();
+    if (this.clientPlayerNum === 1) {
+      this.player2.applyInput(this.interpolationInputs[0]);
+      this.interpolationInputs.shift();
+    }
+    if (this.clientPlayerNum === 2) {
+      this.player1.applyInput(this.interpolationInputs[0]);
+      this.interpolationInputs.shift();
+    }
+  }
+
   drawCanvas() {
     let context: CanvasRenderingContext2D = this.canvas.nativeElement.getContext("2d");
     context.clearRect(0, 0, 800, 600);
@@ -130,164 +147,4 @@ export class AppComponent implements OnInit {
     context.arc(this.ball.x, this.ball.y, 5, 0, 2*Math.PI);
     context.stroke();
   }
-  //gameLoop() {
-  //  this.gameService.getState().subscribe(
-  //    data => {
-  //      if (this.playerNum === 1) {
-  //        this.yP2 = data[this.roomNum - 1].yP2;
-  //      } else {
-  //        this.yP2 = data[this.roomNum - 1].yP1;
-  //      }
-  //      this.xBall = data[this.roomNum - 1].xBall;
-  //      this.yBall = data[this.roomNum - 1].yBall
-  //    },
-  //    () => console.log("state fetch completed.")
-  //  );
-  //  this.updatePaddlePosition();
-  //  this.draw();
-//
-  //  requestAnimationFrame(this.gameLoop.bind(this));
-  //}
-
-
-
-    //switch(this.ballDirection) {
-    //  case 0: {
-    //    this.yBall -= 5;
-    //    break;
-    //  }
-    //  case 22.5: {
-    //    this.xBall += 2;
-    //    this.yBall -= 4;
-    //    break;
-    //  }
-    //  case 45: {
-    //    this.xBall += 3;
-    //    this.yBall -= 3;
-    //    break;
-    //  }
-    //  case 67.5: {
-    //    this.xBall += 4;
-    //    this.yBall -= 2;
-    //    break;
-    //  }
-    //  case 90: {
-    //    this.xBall += 5;
-    //    break;
-    //  }
-    //  case 112.5: {
-    //    this.yBall -= 5;
-    //    break;
-    //  }
-    //  case 135: {
-    //    this.xBall += 3;
-    //    this.yBall += 3;
-    //    break;
-    //  }
-    //  case 157.5: {
-    //    this.yBall -= 5;
-    //    break;
-    //  }
-    //  case 180: {
-    //    this.yBall += 5;
-    //    break;
-    //  }
-    //  case 202.5: {
-    //    this.yBall -= 5;
-    //    break;
-    //  }
-    //  case 225: {
-    //    this.xBall -= 3;
-    //    this.yBall += 3;
-    //    break;
-    //  }
-    //  case 247.5: {
-    //    this.yBall -= 5;
-    //    break;
-    //  }
-    //  case 270: {
-    //    this.xBall -= 5;
-    //    break;
-    //  }
-    //  case 292.5: {
-    //    this.yBall -= 5;
-    //    break;
-    //  }
-    //  case 315: {
-    //    this.xBall -= 3;
-    //    this.yBall -= 3;
-    //    break;
-    //  }
-    //  case 337.5: {
-    //    this.yBall -= 5;
-    //    break;
-    //  }
-    //}
-    //if (this.yBall < 0) {
-    //  switch(this.ballDirection) {
-    //    case 292.5: {
-    //      this.ballDirection = 247.5;
-    //      break;
-    //    }
-    //    case 315: {
-    //      this.ballDirection = 225;
-    //      break;
-    //    }
-    //    case 337.5: {
-    //      this.ballDirection = 202.5;
-    //      break;
-    //    }
-    //    case 0: {
-    //      this.ballDirection = 180;
-    //      break;
-    //    }
-    //    case 22.5: {
-    //      this.ballDirection = 157.5;
-    //      break;
-    //    }
-    //    case 45: {
-    //      this.ballDirection = 135;
-    //      break;
-    //    }
-    //    case 67.5: {
-    //      this.ballDirection = 112.5;
-    //      break;
-    //    }
-    //  }
-    //}
-//
-    //if (this.yBall > 595) {
-    //  switch(this.ballDirection) {
-    //    case 112.5: {
-    //      this.ballDirection = 67.6;
-    //      break;
-    //    }
-    //    case 135: {
-    //      this.ballDirection = 45;
-    //      break;
-    //    }
-    //    case 157.5: {
-    //      this.ballDirection = 22.5;
-    //      break;
-    //    }
-    //    case 180: {
-    //      this.ballDirection = 0;
-    //      break;
-    //    }
-    //    case 202.5: {
-    //      this.ballDirection = 337;
-    //      break;
-    //    }
-    //    case 225: {
-    //      this.ballDirection = 315;
-    //      break;
-    //    }
-    //    case 257.5: {
-    //      this.ballDirection = 292.5
-    //      ;
-    //      break;
-    //    }
-    //  }
-    //}
-
 }

@@ -3,29 +3,30 @@ class Ball {
   constructor() {
     this.x = 20;
     this.y = 20;
-    this.xspeed = 10;
-    this.yspeed = 10;
+    this.xSpeed = 5;
+    this.ySpeed = 5;
     this.positionBuffer = [];
   }
 
-  move() {
-      this.x += this.xspeed;
-      this.y += this.yspeed;
-      if (this.y > 595) {
-        this.yspeed = -this.yspeed;
-      }
-      if (this.x > 795) {
-        this.xspeed = -this.xspeed;
-      }
-      if (this.y < 5) {
-        this.yspeed = -this.yspeed;
-      }
-      if (this.x < 5) {
-        this.xspeed = -this.xspeed;
-      }
-      //if (this.x < 50 && rooms[i].yBall > rooms[i].yP1 && rooms[i].yBall < rooms[i].yP1 + 100) {
-      //  rooms[i].dx = -rooms[i].dx;
-      //}
+  move(player1, player2) {
+    this.x += this.xSpeed;
+    this.y += this.ySpeed;
+    if (this.y > 595) {
+      this.ySpeed = -this.ySpeed;
+    }
+    if (this.x > 795) {
+      this.xSpeed = -this.xSpeed;
+    }
+    if (this.y < 5) {
+      this.ySpeed = -this.ySpeed;
+    }
+    if (this.x < 5) {
+      this.xSpeed = -this.xSpeed;
+    }
+    if ((this.x < 50 && this.y > player1.y && this.y < player1.y + 100) ||
+        (this.x > 750 && this.y > player2.y && this.y < player2.y + 100)) {
+      this.xSpeed = -this.xSpeed;
+    }
   }
 }
 

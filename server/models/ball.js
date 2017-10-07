@@ -23,8 +23,8 @@ class Ball {
     if (this.x < 5) {
       this.xSpeed = -this.xSpeed;
     }
-    if ((this.x < 50 && this.y > player1.y && this.y < player1.y + 100) ||
-        (this.x > 750 && this.y > player2.y && this.y < player2.y + 100)) {
+    if ((this.x < 40 && this.y > player1.y && this.y < player1.y + 100) ||
+        (this.x > 760 && this.y > player2.y && this.y < player2.y + 100)) {
       this.xSpeed = -this.xSpeed;
     }
   }

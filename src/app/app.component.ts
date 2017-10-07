@@ -70,7 +70,7 @@ export class AppComponent implements OnInit {
   updateGame() {
     this.processServerData();
     this.processUserInputs();
-    //this.interpolate();
+    this.interpolate();
     this.drawCanvas();
   }
 
@@ -79,27 +79,27 @@ export class AppComponent implements OnInit {
       data => {
         // Reconciliation.
         if (this.clientPlayerNum === 1) {
-        //  this.interpolationInputs = data[this.roomNum - 1].inputsP2; // Save inputs of other player for interpolation
-        //  let inputs = data[this.roomNum - 1].inputsP1
-        //  // Verify that client prediction matches server
-        //  for (let i in inputs) {
-        //    if (inputs[i].result != this.pendingInputs[i]) {
+          this.interpolationInputs = data[this.roomNum - 1].inputsP2; // Save inputs of other player for interpolation
+          let inputs = data[this.roomNum - 1].inputsP1
+          // Verify that client prediction matches server
+          for (let i in inputs) {
+            if (inputs[i].result != this.pendingInputs[i]) {
               this.player1.y = data[this.roomNum - 1].player1.y;
-        //    }
+            }
           }
-        //  this.pendingInputs = []
-        //}
+          this.pendingInputs = []
+        }
         if (this.clientPlayerNum === 2) {
-        //  this.interpolationInputs = data[this.roomNum - 1].inputsP1; // Save inputs of other player for interpolation
-        //  let inputs = data[this.roomNum - 1].inputsP2
-        //  // Verify that client prediction matches server
-        //  for (let i in inputs) {
-        //    if (inputs[i].result != this.pendingInputs[i]) {
+          this.interpolationInputs = data[this.roomNum - 1].inputsP1; // Save inputs of other player for interpolation
+          let inputs = data[this.roomNum - 1].inputsP2
+          // Verify that client prediction matches server
+          for (let i in inputs) {
+            if (inputs[i].result != this.pendingInputs[i]) {
               this.player2.y = data[this.roomNum - 1].player2.y;
-        //    }
+            }
           }
-        //  this.pendingInputs = []
-        //}
+          this.pendingInputs = []
+        }
         this.ballSteps = data[this.roomNum - 1].ballSteps; // Save ball steps for interpolation
       }
     )

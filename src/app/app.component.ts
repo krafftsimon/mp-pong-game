@@ -69,7 +69,6 @@ export class AppComponent implements OnInit {
   }
 
   updateGame() {
-    //this.processServerData();
     this.processUserInputs();
     this.interpolate();
     this.drawCanvas();
@@ -79,8 +78,8 @@ export class AppComponent implements OnInit {
     this.gameService.getState().subscribe(
       data => {
         // Reconciliation.
-        //if (this.clientPlayerNum === 1) {
-        //  this.interpolationInputs = data[this.roomNum - 1].inputsP2; // Save inputs of other player for interpolation
+        if (this.clientPlayerNum === 1) {
+          this.interpolationInputs = data[this.roomNum - 1].inputsP2; // Save inputs of other player for interpolation
         //  let inputs = data[this.roomNum - 1].inputsP1;
         //  console.log("client:" + this.pendingInputs.length + " | server:" + inputs.length);
         //  // Verify that client prediction matches server
@@ -91,9 +90,9 @@ export class AppComponent implements OnInit {
         //    }
         //  }
         //  this.pendingInputs = []
-        //}
-        //if (this.clientPlayerNum === 2) {
-        //  this.interpolationInputs = data[this.roomNum - 1].inputsP1; // Save inputs of other player for interpolation
+        }
+        if (this.clientPlayerNum === 2) {
+          this.interpolationInputs = data[this.roomNum - 1].inputsP1; // Save inputs of other player for interpolation
         //  let inputs = data[this.roomNum - 1].inputsP2;
         //  // Verify that client prediction matches server
         //  let minArray = inputs.length > this.pendingInputs.length ? this.pendingInputs : inputs;
@@ -103,7 +102,7 @@ export class AppComponent implements OnInit {
         //    }
         //  }
         //  this.pendingInputs = []
-        //}
+        }
         this.ballSteps = data[this.roomNum - 1].ballSteps; // Save ball steps for interpolation
       },
       error => console.log(error),

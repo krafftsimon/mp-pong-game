@@ -106,7 +106,6 @@ var AppComponent = (function () {
         })(this), 1000 / frequency);
     };
     AppComponent.prototype.updateGame = function () {
-        //this.processServerData();
         this.processUserInputs();
         this.interpolate();
         this.drawCanvas();
@@ -115,31 +114,31 @@ var AppComponent = (function () {
         var _this = this;
         this.gameService.getState().subscribe(function (data) {
             // Reconciliation.
-            //if (this.clientPlayerNum === 1) {
-            //  this.interpolationInputs = data[this.roomNum - 1].inputsP2; // Save inputs of other player for interpolation
-            //  let inputs = data[this.roomNum - 1].inputsP1;
-            //  console.log("client:" + this.pendingInputs.length + " | server:" + inputs.length);
-            //  // Verify that client prediction matches server
-            //  let minArray = inputs.length > this.pendingInputs.length ? this.pendingInputs : inputs;
-            //  for (let i in minArray) {
-            //    if (inputs[i].result != this.pendingInputs[i].predictedPosition) {
-            //      this.player1.y = data[this.roomNum - 1].player1.y;
-            //    }
-            //  }
-            //  this.pendingInputs = []
-            //}
-            //if (this.clientPlayerNum === 2) {
-            //  this.interpolationInputs = data[this.roomNum - 1].inputsP1; // Save inputs of other player for interpolation
-            //  let inputs = data[this.roomNum - 1].inputsP2;
-            //  // Verify that client prediction matches server
-            //  let minArray = inputs.length > this.pendingInputs.length ? this.pendingInputs : inputs;
-            //  for (let i in minArray) {
-            //    if (inputs[i].result != this.pendingInputs[i].predictedPosition) {
-            //      this.player2.y = data[this.roomNum - 1].player2.y;
-            //    }
-            //  }
-            //  this.pendingInputs = []
-            //}
+            if (_this.clientPlayerNum === 1) {
+                _this.interpolationInputs = data[_this.roomNum - 1].inputsP2; // Save inputs of other player for interpolation
+                //  let inputs = data[this.roomNum - 1].inputsP1;
+                //  console.log("client:" + this.pendingInputs.length + " | server:" + inputs.length);
+                //  // Verify that client prediction matches server
+                //  let minArray = inputs.length > this.pendingInputs.length ? this.pendingInputs : inputs;
+                //  for (let i in minArray) {
+                //    if (inputs[i].result != this.pendingInputs[i].predictedPosition) {
+                //      this.player1.y = data[this.roomNum - 1].player1.y;
+                //    }
+                //  }
+                //  this.pendingInputs = []
+            }
+            if (_this.clientPlayerNum === 2) {
+                _this.interpolationInputs = data[_this.roomNum - 1].inputsP1; // Save inputs of other player for interpolation
+                //  let inputs = data[this.roomNum - 1].inputsP2;
+                //  // Verify that client prediction matches server
+                //  let minArray = inputs.length > this.pendingInputs.length ? this.pendingInputs : inputs;
+                //  for (let i in minArray) {
+                //    if (inputs[i].result != this.pendingInputs[i].predictedPosition) {
+                //      this.player2.y = data[this.roomNum - 1].player2.y;
+                //    }
+                //  }
+                //  this.pendingInputs = []
+            }
             _this.ballSteps = data[_this.roomNum - 1].ballSteps; // Save ball steps for interpolation
         }, function (error) { return console.log(error); }, function () { return console.log("Completed."); });
     };

@@ -58,6 +58,7 @@ export class AppComponent implements OnInit {
       () => console.log("Completed.")
     );
     this.setUpdateRate(this.updateRate);
+    this.processServerData();
   }
 
   setUpdateRate(frequency) {
@@ -68,7 +69,7 @@ export class AppComponent implements OnInit {
   }
 
   updateGame() {
-    this.processServerData();
+    //this.processServerData();
     this.processUserInputs();
     this.interpolate();
     this.drawCanvas();
@@ -80,9 +81,11 @@ export class AppComponent implements OnInit {
         // Reconciliation.
         if (this.clientPlayerNum === 1) {
           this.interpolationInputs = data[this.roomNum - 1].inputsP2; // Save inputs of other player for interpolation
-          let inputs = data[this.roomNum - 1].inputsP1
+          let inputs = data[this.roomNum - 1].inputsP1;
+          console.log("client:" + this.pendingInputs.length + " | server:" + inputs.length);
           // Verify that client prediction matches server
-          for (let i in inputs) {
+          let minArray = inputs.length > this.pendingInputs.length ? this.pendingInputs : inputs;
+          for (let i in minArray) {
             if (inputs[i].result != this.pendingInputs[i].predictedPosition) {
               this.player1.y = data[this.roomNum - 1].player1.y;
             }
@@ -91,9 +94,10 @@ export class AppComponent implements OnInit {
         }
         if (this.clientPlayerNum === 2) {
           this.interpolationInputs = data[this.roomNum - 1].inputsP1; // Save inputs of other player for interpolation
-          let inputs = data[this.roomNum - 1].inputsP2
+          let inputs = data[this.roomNum - 1].inputsP2;
           // Verify that client prediction matches server
-          for (let i in inputs) {
+          let minArray = inputs.length > this.pendingInputs.length ? this.pendingInputs : inputs;
+          for (let i in minArray) {
             if (inputs[i].result != this.pendingInputs[i].predictedPosition) {
               this.player2.y = data[this.roomNum - 1].player2.y;
             }
@@ -101,8 +105,10 @@ export class AppComponent implements OnInit {
           this.pendingInputs = []
         }
         this.ballSteps = data[this.roomNum - 1].ballSteps; // Save ball steps for interpolation
-      }
-    )
+      },
+      error => console.log(error),
+      () => console.log("Completed.")
+    );
   }
 
   processUserInputs() {

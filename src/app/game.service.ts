@@ -5,7 +5,7 @@ import * as io from 'socket.io-client';
 
 @Injectable()
 export class GameService {
-  private url = 'http://35.193.240.128:4400';
+  private url = 'http://localhost:4400';
   private socket;
 
   connect() {

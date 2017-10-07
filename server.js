@@ -94,7 +94,6 @@ function moveBall(i) {
 }
 
 function sendGameState() {
-  console.log(rooms[0].inputsP1);
   io.sockets.emit('gameState', rooms);
   //clear list of inputs received and ball steps for the next update
   for (let i in rooms) {

@@ -83,7 +83,6 @@ export class AppComponent implements OnInit {
           let inputs = data[this.roomNum - 1].inputsP1
           // Verify that client prediction matches server
           for (let i in inputs) {
-            console.log(inputs[i].result + " " + this.pendingInputs[i])
             if (inputs[i].result != this.pendingInputs[i].predictedPosition) {
               this.player1.y = data[this.roomNum - 1].player1.y;
             }

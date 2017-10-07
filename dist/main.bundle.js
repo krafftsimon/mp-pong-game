@@ -119,7 +119,6 @@ var AppComponent = (function () {
                 var inputs = data[_this.roomNum - 1].inputsP1;
                 // Verify that client prediction matches server
                 for (var i in inputs) {
-                    console.log(inputs[i].result + " " + _this.pendingInputs[i]);
                     if (inputs[i].result != _this.pendingInputs[i].predictedPosition) {
                         _this.player1.y = data[_this.roomNum - 1].player1.y;
                     }
@@ -314,7 +313,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 
 var GameService = (function () {
     function GameService() {
-        this.url = 'http://35.193.240.128:4400';
+        this.devUrl = 'http://localhost:4400';
+        this.prodUrl = 'http://35.193.240.128:4400';
+        this.url = this.devUrl;
     }
     GameService.prototype.connect = function () {
         var _this = this;

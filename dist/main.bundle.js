@@ -120,7 +120,7 @@ var AppComponent = (function () {
                 // Verify that client prediction matches server
                 for (var i in inputs) {
                     console.log(inputs[i].result + " " + _this.pendingInputs[i]);
-                    if (inputs[i].result != _this.pendingInputs[i]) {
+                    if (inputs[i].result != _this.pendingInputs[i].predictedPosition) {
                         _this.player1.y = data[_this.roomNum - 1].player1.y;
                     }
                 }
@@ -131,7 +131,7 @@ var AppComponent = (function () {
                 var inputs = data[_this.roomNum - 1].inputsP2;
                 // Verify that client prediction matches server
                 for (var i in inputs) {
-                    if (inputs[i].result != _this.pendingInputs[i]) {
+                    if (inputs[i].result != _this.pendingInputs[i].predictedPosition) {
                         _this.player2.y = data[_this.roomNum - 1].player2.y;
                     }
                 }

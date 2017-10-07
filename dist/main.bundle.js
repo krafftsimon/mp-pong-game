@@ -114,26 +114,26 @@ var AppComponent = (function () {
         var _this = this;
         this.gameService.getState().subscribe(function (data) {
             // Reconciliation.
-            //if (this.clientPlayerNum === 1) {
-            //  this.interpolationInputs = data[this.roomNum - 1].inputsP2; // Save inputs of other player for interpolation
-            //  let inputs = data[this.roomNum - 1].inputsP1
-            //  // Verify that client prediction matches server
-            //  for (let i in inputs) {
-            //    if (inputs[i].result != this.pendingInputs[i]) {
-            //      this.player1.y = data[this.roomNum - 1].player1.y;
-            //    }
-            //  }
+            if (_this.clientPlayerNum === 1) {
+                //  this.interpolationInputs = data[this.roomNum - 1].inputsP2; // Save inputs of other player for interpolation
+                //  let inputs = data[this.roomNum - 1].inputsP1
+                //  // Verify that client prediction matches server
+                //  for (let i in inputs) {
+                //    if (inputs[i].result != this.pendingInputs[i]) {
+                _this.player1.y = data[_this.roomNum - 1].player1.y;
+                //    }
+            }
             //  this.pendingInputs = []
             //}
-            //if (this.clientPlayerNum === 2) {
-            //  this.interpolationInputs = data[this.roomNum - 1].inputsP1; // Save inputs of other player for interpolation
-            //  let inputs = data[this.roomNum - 1].inputsP2
-            //  // Verify that client prediction matches server
-            //  for (let i in inputs) {
-            //    if (inputs[i].result != this.pendingInputs[i]) {
-            //      this.player2.y = data[this.roomNum - 1].player2.y;
-            //    }
-            //  }
+            if (_this.clientPlayerNum === 2) {
+                //  this.interpolationInputs = data[this.roomNum - 1].inputsP1; // Save inputs of other player for interpolation
+                //  let inputs = data[this.roomNum - 1].inputsP2
+                //  // Verify that client prediction matches server
+                //  for (let i in inputs) {
+                //    if (inputs[i].result != this.pendingInputs[i]) {
+                _this.player2.y = data[_this.roomNum - 1].player2.y;
+                //    }
+            }
             //  this.pendingInputs = []
             //}
             _this.ballSteps = data[_this.roomNum - 1].ballSteps; // Save ball steps for interpolation

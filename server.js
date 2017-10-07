@@ -25,7 +25,7 @@ const io = require('socket.io')(server);
 //variables
 let roomNum = 1;
 let playerNum = 1;
-let updateRate = 10;
+let updateRate = 25;
 let ballUpdateRate = 50;
 let inputs = []
 let rooms = [{player1: new Player(20), player2: new Player(760), ball: new Ball() , inputsP1: [], inputsP2: [], ballSteps: []}]

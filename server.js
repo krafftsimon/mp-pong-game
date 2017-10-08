@@ -28,7 +28,14 @@ let playerNum = 1;
 let updateRate = 10;
 let ballUpdateRate = 50;
 let inputs = []
-let rooms = [{player1: new Player(20), player2: new Player(760), ball: new Ball() , inputsP1: [], inputsP2: [], ballSteps: []}]
+let rooms = [{player1: new Player(20),
+              player2: new Player(760),
+              ball: new Ball(),
+              inputsP1: [],
+              inputsP2: [],
+              lastProcessedInputP1: 0,
+              lastProcessedInputP2: 0,
+              ballSteps: []}]
 
 // Whenever someone connects this gets executed.
 io.on('connection', function(socket) {
@@ -36,7 +43,14 @@ io.on('connection', function(socket) {
   if(io.nsps['/'].adapter.rooms["room-" + roomNum] && io.nsps['/'].adapter.rooms["room-" + roomNum].length > 1) {
      roomNum++;
      playerNum = 1;
-     rooms.push({player1: new Player(20), player2: new Player(760), ball: new Ball() , inputsP1: [], inputsP2: [], ballSteps: []});
+     rooms.push({player1: new Player(20),
+                 player2: new Player(760),
+                 ball: new Ball(),
+                 inputsP1: [],
+                 inputsP2: [],
+                 lastProcessedInputP1: 0,
+                 lastProcessedInputP2: 0,
+                 ballSteps: []});
   }
   socket.join("room-" + roomNum);
   // Send this event to everyone in the room.
@@ -78,11 +92,11 @@ setInterval(function() {
 function processInputs(i) {
   for (let y in rooms[i].inputsP1) {
     rooms[i].player1.applyInput(rooms[i].inputsP1[y]);
-    rooms[i].inputsP1[y].result = rooms[i].player1.y;
+    rooms[i].lastProcessedInputP1 = rooms[i].inputsP1[y].inputNumber;
   }
   for (let y in rooms[i].inputsP2) {
     rooms[i].player2.applyInput(rooms[i].inputsP2[y]);
-    rooms[i].inputsP2[y].result = rooms[i].player2.y;
+    rooms[i].lastProcessedInputP2 = rooms[i].inputsP2[y].inputNumber;
   }
 }
 

@@ -14,13 +14,17 @@ export class AppComponent implements OnInit {
   updateRate: number = 50; //in hertz
   updateInterval;
   clientPlayerNum;
-  directionP1: number = 0;
+  direction: number = 0;
   player1: Player;
   player2: Player;
   ball: Ball;
   interpolationInputs = [];
   pendingInputs = []; //Inputs awaiting to be confirmed by the server
   ballSteps = [];
+  inputNumber: number = 0;
+  gameState;
+  serverlastProcessedInput;
+
 
   constructor(private gameService: GameService) {
     this.player1 = new Player(20);
@@ -31,16 +35,16 @@ export class AppComponent implements OnInit {
   @ViewChild("gameCanvas") canvas: ElementRef;
   @HostListener('window:keydown', ['$event']) keyUp(event: KeyboardEvent) {
     if (event.keyCode === 38) {
-      this.directionP1 = -1;
+      this.direction = -1;
     } else if (event.keyCode === 40) {
-      this.directionP1 = 1;
+      this.direction = 1;
     }
   }
   @HostListener('window:keyup', ['$event']) keyDown(event: KeyboardEvent) {
     if (event.keyCode === 38) {
-      this.directionP1 = 0;
+      this.direction = 0;
     } else if (event.keyCode === 40) {
-      this.directionP1 = 0;
+      this.direction = 0;
     }
   }
 
@@ -57,8 +61,8 @@ export class AppComponent implements OnInit {
       error => console.log(error),
       () => console.log("Completed.")
     );
+    this.subscribeToServer();
     this.setUpdateRate(this.updateRate);
-    this.processServerData();
   }
 
   setUpdateRate(frequency) {
@@ -69,49 +73,59 @@ export class AppComponent implements OnInit {
   }
 
   updateGame() {
+    this.processServerData();
     this.processUserInputs();
     this.interpolate();
     this.drawCanvas();
   }
 
-  processServerData() {
+  subscribeToServer() {
     this.gameService.getState().subscribe(
-      data => {
-        // Reconciliation.
-        if (this.clientPlayerNum === 1) {
-          this.interpolationInputs = data[this.roomNum - 1].inputsP2; // Save inputs of other player for interpolation
-        //  let inputs = data[this.roomNum - 1].inputsP1;
-        //  console.log("client:" + this.pendingInputs.length + " | server:" + inputs.length);
-        //  // Verify that client prediction matches server
-        //  let minArray = inputs.length > this.pendingInputs.length ? this.pendingInputs : inputs;
-        //  for (let i in minArray) {
-        //    if (inputs[i].result != this.pendingInputs[i].predictedPosition) {
-        //      this.player1.y = data[this.roomNum - 1].player1.y;
-        //    }
-        //  }
-        //  this.pendingInputs = []
-        }
-        if (this.clientPlayerNum === 2) {
-          this.interpolationInputs = data[this.roomNum - 1].inputsP1; // Save inputs of other player for interpolation
-        //  let inputs = data[this.roomNum - 1].inputsP2;
-        //  // Verify that client prediction matches server
-        //  let minArray = inputs.length > this.pendingInputs.length ? this.pendingInputs : inputs;
-        //  for (let i in minArray) {
-        //    if (inputs[i].result != this.pendingInputs[i].predictedPosition) {
-        //      this.player2.y = data[this.roomNum - 1].player2.y;
-        //    }
-        //  }
-        //  this.pendingInputs = []
-        }
-        this.ballSteps = data[this.roomNum - 1].ballSteps; // Save ball steps for interpolation
-      },
+      data => this.gameState = data[this.roomNum - 1],
       error => console.log(error),
       () => console.log("Completed.")
     );
   }
 
+  processServerData() {
+    // Reconciliation.
+    if (this.clientPlayerNum === 1) {
+      this.player1.y = this.gameState.player1.y
+      this.interpolationInputs = this.gameState.inputsP2; // Save inputs of other player for interpolation
+      let i = 0;
+      while (i < this.pendingInputs.length) {
+        if (this.pendingInputs[i].inputNumber <= this.gameState.lastProcessedInputP1) {
+          this.pendingInputs.splice(i, 1);
+        } else {
+          this.player1.applyInput(this.pendingInputs[i]);
+          i++;
+        }
+      }
+    } else if (this.clientPlayerNum === 2) {
+      this.player2.y = this.gameState.player2.y
+      this.interpolationInputs = this.gameState.inputsP1; // Save inputs of other player for interpolation
+      let i = 0;
+      while (i < this.pendingInputs.length) {
+        if (this.pendingInputs[i].inputNumber <= this.gameState.lastProcessedInputP2) {
+          this.pendingInputs.splice(i, 1);
+        } else {
+          this.player2.applyInput(this.pendingInputs[i]);
+          i++
+        }
+      }
+    }
+    this.ballSteps = this.gameState.ballSteps; // Save ball steps for interpolation
+  }
+
   processUserInputs() {
-    let input = {direction: this.directionP1, playerNum: this.clientPlayerNum, roomNum: this.roomNum};
+    //this.ball.move(this.player1, this.player2);
+    if (this.direction === 0) {
+      return
+    }
+    let input = {direction: this.direction,
+                 inputNumber: this.inputNumber++,
+                 playerNum: this.clientPlayerNum,
+                 roomNum: this.roomNum};
     if (typeof this.roomNum != 'undefined') {
       this.gameService.sendUserInput(input);
     }
@@ -119,25 +133,28 @@ export class AppComponent implements OnInit {
     if (this.clientPlayerNum === 1) {
       this.player1.applyInput(input);
       //Store the input and the result of the prediction for reconciliation
-      this.pendingInputs.push({input: input, predictedPosition: this.player1.y})
+      this.pendingInputs.push(input)
     } else {
       this.player2.applyInput(input);
       //Store the input and the result of the prediction for reconciliation
-      this.pendingInputs.push({input: input, predictedPosition: this.player2.y})
+      this.pendingInputs.push(input)
     }
   }
 
   interpolate() {
-    this.ball.x = this.ballSteps[0].x;
-    this.ball.y = this.ballSteps[0].y;
-    this.ballSteps.shift();
-    if (this.clientPlayerNum === 1) {
-      this.player2.applyInput(this.interpolationInputs[0]);
-      this.interpolationInputs.shift();
+    if (this.ballSteps.length > 0) {
+      this.ball.x = this.ballSteps[0].x;
+      this.ball.y = this.ballSteps[0].y;
+      this.ballSteps.shift();
     }
-    if (this.clientPlayerNum === 2) {
-      this.player1.applyInput(this.interpolationInputs[0]);
-      this.interpolationInputs.shift();
+    if (this.interpolationInputs.length > 0) {
+      if (this.clientPlayerNum === 1) {
+        this.player2.applyInput(this.interpolationInputs[0]);
+        this.interpolationInputs.shift();
+      } else if (this.clientPlayerNum === 2) {
+        this.player1.applyInput(this.interpolationInputs[0]);
+        this.interpolationInputs.shift();
+      }
     }
   }
 

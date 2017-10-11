@@ -1,6 +1,7 @@
 class Player {
 
-  constructor(x) {
+  constructor(x, id) {
+    this.id = id;
     this.x = x;
     this.y = 250;
     this.speed = 10;

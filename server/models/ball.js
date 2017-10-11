@@ -15,7 +15,8 @@ class Ball {
       this.ySpeed = -this.ySpeed;
     }
     if (this.x > 795) {
-      this.xSpeed = -this.xSpeed;
+      this.x = 400;
+      this.y = 250
     }
     if (this.y < 5) {
       this.ySpeed = -this.ySpeed;

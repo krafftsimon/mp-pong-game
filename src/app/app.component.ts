@@ -157,6 +157,11 @@ export class AppComponent {
   }
 
   processUserInputs() {
+    // Client-side prediction for the ball. Based on the position and speed of the server-side ball.
+    this.ball.x = this.serverData.ball.x + this.ballMovementCounter * this.serverData.ball.xSpeed;
+    this.ball.y = this.serverData.ball.y + this.ballMovementCounter * this.serverData.ball.ySpeed;
+    this.ballMovementCounter++;
+
     //this.ball.move(this.player1, this.player2);
     if (this.direction === 0) {
       return
@@ -178,11 +183,7 @@ export class AppComponent {
       //Store the input and the result of the prediction for reconciliation
       this.pendingInputs.push(input)
     }
-    // Client-side prediction for the ball. Based on the position and speed of the server-side ball.
-    this.ball.x = this.serverData.ball.x + this.ballMovementCounter * this.serverData.ball.xSpeed;
-    this.ball.y = this.serverData.ball.y + this.ballMovementCounter * this.serverData.ball.ySpeed;
-    console.log(this.ball.x + " | " + this.serverData.ball.x);
-    this.ballMovementCounter++;
+
   }
 
   interpolate() {

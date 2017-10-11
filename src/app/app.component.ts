@@ -18,6 +18,11 @@ export class AppComponent {
   player1: Player;
   player2: Player;
   ball: Ball;
+  previousBallX: number;
+  previousBallY: number;
+  currentBallX: number;
+  currentBallY: number;
+  ballMovementCounter: number = 0;
   interpolationInputs = [];
   pendingInputs = []; //Inputs awaiting to be confirmed by the server
   ballSteps = [];
@@ -115,7 +120,7 @@ export class AppComponent {
 
   subscribeToServer() {
     this.gameService.getState().subscribe(
-      data => this.serverData = data[this.roomNum - 1],
+      data => {this.serverData = data[this.roomNum - 1]; this.ballMovementCounter = 0;},
       error => console.log(error),
       () => console.log("Completed.")
     );
@@ -148,8 +153,6 @@ export class AppComponent {
         }
       }
     }
-    this.ball.x = this.serverData.ball.x;
-    this.ball.y = this.serverData.ball.y;
     //this.ballSteps = this.serverData.ballSteps; // Save ball steps for interpolation
   }
 
@@ -165,7 +168,7 @@ export class AppComponent {
     if (typeof this.roomNum != 'undefined') {
       this.gameService.sendUserInput(input);
     }
-    // Client-side prediction.
+    // Client-side prediction for the paddle.
     if (this.clientPlayerNum === 1) {
       this.player1.applyInput(input);
       //Store the input and the result of the prediction for reconciliation
@@ -175,6 +178,11 @@ export class AppComponent {
       //Store the input and the result of the prediction for reconciliation
       this.pendingInputs.push(input)
     }
+    // Client-side prediction for the ball. Based on the position and speed of the server-side ball.
+    this.ball.x = this.serverData.ball.x + this.ballMovementCounter * this.serverData.ball.xSpeed;
+    this.ball.y = this.serverData.ball.y + this.ballMovementCounter * this.serverData.ball.ySpeed;
+    console.log(this.ball.x + " | " + this.serverData.ball.x);
+    this.ballMovementCounter++;
   }
 
   interpolate() {
@@ -183,6 +191,8 @@ export class AppComponent {
     //  this.ball.y = this.ballSteps[0].y;
     //  this.ballSteps.shift();
     //}
+
+
     if (this.interpolationInputs.length > 0) {
       if (this.clientPlayerNum === 1) {
         this.player2.applyInput(this.interpolationInputs[0]);

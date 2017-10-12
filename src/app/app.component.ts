@@ -158,9 +158,9 @@ export class AppComponent {
 
   processUserInputs() {
     // Client-side prediction for the ball. Based on the position and speed of the server-side ball.
-    this.ball.x = this.serverData.ball.x + this.ballMovementCounter * this.serverData.ball.xSpeed;
-    this.ball.y = this.serverData.ball.y + this.ballMovementCounter * this.serverData.ball.ySpeed;
-    this.ballMovementCounter++;
+    this.ball.x = this.serverData.ball.x //+ this.ballMovementCounter * this.serverData.ball.xSpeed;
+    this.ball.y = this.serverData.ball.y //+ this.ballMovementCounter * this.serverData.ball.ySpeed;
+    //this.ballMovementCounter++;
 
     //this.ball.move(this.player1, this.player2);
     if (this.direction === 0) {
@@ -252,6 +252,15 @@ export class AppComponent {
     this.canvasCtx.shadowOffsetX=10;
     this.canvasCtx.shadowColor="grey";
 
+    // Ball.
+    this.canvasCtx.beginPath();
+    this.canvasCtx.fillStyle="#68EFAD";
+    this.canvasCtx.lineWidth=1;
+    this.canvasCtx.strokeStyle="grey";
+    this.canvasCtx.arc(this.ball.x, this.ball.y, 10, 0, 2*Math.PI);
+    this.canvasCtx.fill();
+    this.canvasCtx.stroke();
+
     // Paddles.
     this.canvasCtx.beginPath();
     this.canvasCtx.fillStyle="#691A99";
@@ -259,15 +268,6 @@ export class AppComponent {
     this.canvasCtx.strokeStyle="grey";
     this.canvasCtx.rect(this.player1.x, this.player1.y, 20, 100);
     this.canvasCtx.rect(this.player2.x, this.player2.y, 20, 100);
-    this.canvasCtx.fill();
-    this.canvasCtx.stroke();
-
-    // Ball.
-    this.canvasCtx.beginPath();
-    this.canvasCtx.fillStyle="#68EFAD";
-    this.canvasCtx.lineWidth=1;
-    this.canvasCtx.strokeStyle="grey";
-    this.canvasCtx.arc(this.ball.x, this.ball.y, 5, 0, 2*Math.PI);
     this.canvasCtx.fill();
     this.canvasCtx.stroke();
 

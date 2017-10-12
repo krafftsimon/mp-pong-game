@@ -7,7 +7,7 @@ import * as io from 'socket.io-client';
 export class GameService {
   private devUrl = 'http://localhost:4400';
   private prodUrl = 'http://35.193.240.128:4400';
-  private url = this.prodUrl;
+  private url = this.devUrl;
   private socket;
 
   connect() {

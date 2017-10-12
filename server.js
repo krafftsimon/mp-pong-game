@@ -24,7 +24,7 @@ const io = require('socket.io')(server);
 
 //variables
 
-let updateRate = 10;
+let updateRate = 50;
 let ballUpdateRate = 50;
 let inputs = [];
 let rooms = Array(2).fill();
@@ -55,6 +55,11 @@ io.on('connection', function(socket) {
       rooms[roomNum].inputsP2.push(input);
     }
   });
+
+  socket.on('racketCollision', function(collision) {
+    let roomNum = collision.roomNum - 1;
+
+  })
 
   // Whenever a player is disconnecting (hasn't left the room yet)
   socket.on('disconnecting', function(){
@@ -102,9 +107,6 @@ function joinRoom(socket) {
     countDown(i);
   }
 }
-  //if(io.nsps['/'].adapter.rooms["room-" + roomsAvailable[0]] && io.nsps['/'].adapter.rooms["room-" + roomsAvailable[0]].length > 1) {
-  //
-  //}
 
 function leaveRoom(socket) {
   let room = Object.keys(socket.rooms);
@@ -173,10 +175,11 @@ function sendGameState() {
 }
 
 function countDown(i) {
-  rooms[i].gameState = "starting";
-  setTimeout(function() {
-    rooms[i].gameState = "started";
-  }, 3000);
+  rooms[i].gameState = "started";
+  //rooms[i].gameState = "starting";
+  //setTimeout(function() {
+  //  rooms[i].gameState = "started";
+  //}, 3000);
 }
 
 server.listen(port, () => console.log(`Running on localhost:${port}`));

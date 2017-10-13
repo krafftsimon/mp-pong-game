@@ -18,6 +18,7 @@ export class AppComponent {
   player1: Player;
   player2: Player;
   ball: Ball;
+  ball2: Ball;
   previousBallX: number;
   previousBallY: number;
   currentBallX: number;
@@ -40,11 +41,16 @@ export class AppComponent {
   pointsP1: string = "0";
   pointsP2: string = "0";
 
-
+ /* powerups :
+ -small Paddles
+ -large Paddles
+ -ball speed
+*/
   constructor(private gameService: GameService, private renderer: Renderer2) {
     this.player1 = new Player(20);
     this.player2 = new Player(760);
     this.ball = new Ball;
+    this.ball2 = new Ball;
   }
 
   @ViewChild("gameCanvas") canvas: ElementRef;
@@ -161,6 +167,8 @@ export class AppComponent {
     this.ball.x = this.serverData.ball.x //+ this.ballMovementCounter * this.serverData.ball.xSpeed;
     this.ball.y = this.serverData.ball.y //+ this.ballMovementCounter * this.serverData.ball.ySpeed;
     //this.ballMovementCounter++;
+    //this.ball2.x = this.serverData.ball2.x
+    //this.ball2.y = this.serverData.ball2.y
 
     //this.ball.move(this.player1, this.player2);
     if (this.direction === 0) {
@@ -220,9 +228,11 @@ export class AppComponent {
 
   drawGame() {
     this.canvasCtx.clearRect(0, 0, 800, 600);
-
     // Background color.
-    this.canvasCtx.fillStyle="#e5e5e5";
+    let grd=this.canvasCtx.createRadialGradient(400,300,80,400,300,600);
+    grd.addColorStop(0,"#e5e5e5");
+    grd.addColorStop(1,"#b2b2b2");
+    this.canvasCtx.fillStyle=grd;
     this.canvasCtx.fillRect(0, 0, 800, 600);
 
     // Line.
@@ -258,16 +268,7 @@ export class AppComponent {
     this.canvasCtx.lineWidth=1;
     this.canvasCtx.strokeStyle="grey";
     this.canvasCtx.arc(this.ball.x, this.ball.y, 10, 0, 2*Math.PI);
-    this.canvasCtx.fill();
-    this.canvasCtx.stroke();
-
-    // Paddles.
-    this.canvasCtx.beginPath();
-    this.canvasCtx.fillStyle="#691A99";
-    this.canvasCtx.lineWidth=2;
-    this.canvasCtx.strokeStyle="grey";
-    this.canvasCtx.rect(this.player1.x, this.player1.y, 20, 100);
-    this.canvasCtx.rect(this.player2.x, this.player2.y, 20, 100);
+    //this.canvasCtx.arc(this.ball2.x, this.ball2.y, 10, 0, 2*Math.PI);
     this.canvasCtx.fill();
     this.canvasCtx.stroke();
 
@@ -275,6 +276,17 @@ export class AppComponent {
     this.canvasCtx.font = "40px Comic Sans MS";
     this.canvasCtx.fillText(this.serverData.pointsP1, 300, 40);
     this.canvasCtx.fillText(this.serverData.pointsP2, 475, 40);
+
+
+    // Paddles.
+    this.canvasCtx.beginPath();
+    this.canvasCtx.fillStyle="#691A99";
+    this.canvasCtx.lineWidth=2;
+    this.canvasCtx.strokeStyle="grey";
+    this.canvasCtx.rect(this.player1.x, this.player1.y, 20, 105);
+    this.canvasCtx.rect(this.player2.x, this.player2.y, 20, 105);
+    this.canvasCtx.fill();
+    this.canvasCtx.stroke();
 
   }
 

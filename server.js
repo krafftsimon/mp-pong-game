@@ -32,7 +32,8 @@ for (let i = 0; i < rooms.length; i++) {
   rooms[i] = {playersInRoom: [],
               player1: new Player(20),
               player2: new Player(760),
-              ball: new Ball(),
+              ball: new Ball(20),
+              ball2: new Ball(780),
               inputsP1: [],
               inputsP2: [],
               lastProcessedInputP1: 0,
@@ -135,10 +136,10 @@ setInterval(function() {
   for (let i in rooms) {
     if (rooms[i].gameState === "started") {
       moveBall(i);
-      if (rooms[i].ball.x <= 5) {
+      if (rooms[i].ball.x <= 10) {
         rooms[i].pointsP2++;
         countDown(i);
-      } else if (rooms[i].ball.x >= 795) {
+      } else if (rooms[i].ball.x >= 790) {
         rooms[i].pointsP1++;
         countDown(i);
       }
@@ -160,8 +161,9 @@ function processInputs(i) {
 function moveBall(i) {
   // Move the ball.
   rooms[i].ball.move(rooms[i].player1, rooms[i].player2);
+  //rooms[i].ball2.move(rooms[i].player1, rooms[i].player2);
   // Save the new position of the ball.
-  rooms[i].ballSteps.push({x: rooms[i].ball.x, y: rooms[i].ball.y});
+  //rooms[i].ballSteps.push({x: rooms[i].ball.x, y: rooms[i].ball.y});
 }
 
 function sendGameState() {

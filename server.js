@@ -41,7 +41,11 @@ for (let i = 0; i < rooms.length; i++) {
               ballSteps: [],
               pointsP1: 0,
               pointsP2: 0,
-              gameState: "waitingForPlayer"};
+              gameState: "waitingForPlayer",
+              powerupOnBoard: 0,  // 0 - none, 1 - grow, 2 - shrink, 3 - duplicate, 4 - slow, 5 - fast
+              powerupsActive:[false, false, false, false, false],
+              powerupX: 200,
+              powerupY: 200};
 }
 // Whenever someone connects this gets executed.
 io.on('connection', function(socket) {
@@ -127,6 +131,7 @@ setInterval(function() {
   for (let i in rooms) {
     if (rooms[i].gameState === "started") {
       processInputs(i);
+      //spawnPowerups(i);
     }
   }
   sendGameState();
@@ -166,6 +171,26 @@ function moveBall(i) {
   //rooms[i].ballSteps.push({x: rooms[i].ball.x, y: rooms[i].ball.y});
 }
 
+function spawnPowerups(i) {
+  // Check if there already is a powerup on the board.
+  if (rooms[i].powerupOnBoard === 0) {
+    let randomNum = Math.floor((Math.random() * 1000));
+    if (randomNum < 10) {
+      rooms[i].powerupOnBoard = 1;
+    } else if (randomNum < 20) {
+      rooms[i].powerupOnBoard = 2;
+    } else if (randomNum < 30) {
+      rooms[i].powerupOnBoard = 3;
+    } else if (randomNum < 40) {
+      rooms[i].powerupOnBoard = 4;
+    } else if (randomNum < 50) {
+      rooms[i].powerupOnBoard = 5;
+    }
+    rooms[i].powerupX = Math.floor(Math.random() * 700) + 100;
+    rooms[i].powerupY = Math.floor(Math.random() * 550) + 50;
+  }
+}
+
 function sendGameState() {
   io.sockets.emit('gameState', rooms);
   //clear list of inputs received and ball steps for the next update
@@ -177,11 +202,11 @@ function sendGameState() {
 }
 
 function countDown(i) {
-  rooms[i].gameState = "started";
-  //rooms[i].gameState = "starting";
-  //setTimeout(function() {
-  //  rooms[i].gameState = "started";
-  //}, 3000);
+  //rooms[i].gameState = "started";
+  rooms[i].gameState = "starting";
+  setTimeout(function() {
+    rooms[i].gameState = "started";
+  }, 3000);
 }
 
 server.listen(port, () => console.log(`Running on localhost:${port}`));

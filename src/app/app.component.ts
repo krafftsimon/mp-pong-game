@@ -40,17 +40,34 @@ export class AppComponent {
   countDownStarted: boolean = false;
   pointsP1: string = "0";
   pointsP2: string = "0";
+  paddleSound;
+  wallSound;
+  growIcon;
+  shrinkIcon;
+  duplicateIcon;
+  accelerateIcon;
 
- /* powerups :
- -small Paddles
- -large Paddles
- -ball speed
-*/
   constructor(private gameService: GameService, private renderer: Renderer2) {
     this.player1 = new Player(20);
     this.player2 = new Player(760);
     this.ball = new Ball;
     this.ball2 = new Ball;
+    this.paddleSound = new Audio();
+    this.paddleSound.src = '../assets/Sound - Headshot 1x.mp3';
+    this.paddleSound.volume = 0.2
+    this.paddleSound.load();
+    this.wallSound = new Audio();
+    this.wallSound.src = '../assets/Sound - Bodyshot 1x.mp3';
+    this.wallSound.volume = 0.1
+    this.wallSound.load();
+    this.growIcon = new Image();
+    this.growIcon.src = '../assets/grow.jpg'
+    this.shrinkIcon = new Image();
+    this.shrinkIcon.src = '../assets/shrink.jpg'
+    this.duplicateIcon = new Image();
+    this.duplicateIcon.src = '../assets/duplicate.jpg'
+    this.accelerateIcon = new Image();
+    this.accelerateIcon.src = '../assets/accelerate.jpg'
   }
 
   @ViewChild("gameCanvas") canvas: ElementRef;
@@ -166,6 +183,17 @@ export class AppComponent {
     // Client-side prediction for the ball. Based on the position and speed of the server-side ball.
     this.ball.x = this.serverData.ball.x //+ this.ballMovementCounter * this.serverData.ball.xSpeed;
     this.ball.y = this.serverData.ball.y //+ this.ballMovementCounter * this.serverData.ball.ySpeed;
+    if (this.ball.x <= 50) {
+      if (this.ball.y >= this.player1.y - 10 && this.ball.y <= this.player1.y + 115) {
+        this.paddleSound.play();
+      }
+    }
+    if (this.ball.x >= 750) {
+      if (this.ball.y >= this.player2.y - 10 && this.ball.y <= this.player2.y + 115) {
+        this.paddleSound.play();
+      }
+    }
+
     //this.ballMovementCounter++;
     //this.ball2.x = this.serverData.ball2.x
     //this.ball2.y = this.serverData.ball2.y
@@ -228,6 +256,7 @@ export class AppComponent {
 
   drawGame() {
     this.canvasCtx.clearRect(0, 0, 800, 600);
+
     // Background color.
     let grd=this.canvasCtx.createRadialGradient(400,300,80,400,300,600);
     grd.addColorStop(0,"#e5e5e5");
@@ -255,6 +284,20 @@ export class AppComponent {
       this.canvasCtx.font = "60px Comic Sans MS";
       this.canvasCtx.fillText(this.countDown, 380, 300);
     }
+
+    // Powerups.
+    if (this.serverData.powerupOnBoard === 1) {
+      this.canvasCtx.drawImage(this.growIcon, this.serverData.powerupX, this.serverData.powerupY, 32, 32);
+    } else if (this.serverData.powerupOnBoard === 2) {
+      this.canvasCtx.drawImage(this.shrinkIcon, this.serverData.powerupX, this.serverData.powerupY, 32, 32);
+    } else if (this.serverData.powerupOnBoard === 3) {
+      this.canvasCtx.drawImage(this.duplicateIcon, this.serverData.powerupX, this.serverData.powerupY, 32, 32);
+    } else if (this.serverData.powerupOnBoard === 4) {
+      this.canvasCtx.drawImage(this.accelerateIcon, this.serverData.powerupX, this.serverData.powerupY, 32, 32);
+    } else if (this.serverData.powerupOnBoard === 5) {
+      this.canvasCtx.drawImage(this.growIcon, this.serverData.powerupX, this.serverData.powerupY, 32, 32);
+    }
+
 
     // Paddles and Ball shadow.
     this.canvasCtx.shadowBlur=10;

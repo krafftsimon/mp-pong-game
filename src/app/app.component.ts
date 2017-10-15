@@ -29,6 +29,7 @@ export class AppComponent {
   ballSteps = [];
   inputNumber: number = 0;
   serverData;
+  serverBall: Ball;
   serverlastProcessedInput;
   canvasCtx: CanvasRenderingContext2D;
   menuScreen: boolean = true;
@@ -147,6 +148,11 @@ export class AppComponent {
       error => console.log(error),
       () => console.log("Completed.")
     );
+    this.gameService.getBallPosition().subscribe(
+      data => this.serverBall = data[this.roomNum - 1],
+      error => console.log(error),
+      () => console.log("Completed.")
+    );
   }
 
   processServerData() {
@@ -176,13 +182,12 @@ export class AppComponent {
         }
       }
     }
-    //this.ballSteps = this.serverData.ballSteps; // Save ball steps for interpolation
   }
 
   processUserInputs() {
     // Client-side prediction for the ball. Based on the position and speed of the server-side ball.
-    this.ball.x = this.serverData.ball.x //+ this.ballMovementCounter * this.serverData.ball.xSpeed;
-    this.ball.y = this.serverData.ball.y //+ this.ballMovementCounter * this.serverData.ball.ySpeed;
+    this.ball.x = this.serverBall.x //+ this.ballMovementCounter * this.serverData.ball.xSpeed;
+    this.ball.y = this.serverBall.y //+ this.ballMovementCounter * this.serverData.ball.ySpeed;
     if (this.ball.x <= 50) {
       if (this.ball.y >= this.player1.y - 10 && this.ball.y <= this.player1.y + 115) {
         this.paddleSound.play();

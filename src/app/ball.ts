@@ -1,6 +1,6 @@
 export class Ball {
-  x: number = 20;
-  y: number = 20;
+  x: number = 400;
+  y: number = 300;
   xSpeed: number = 5;
   ySpeed: number = 5;
   positionBuffer: number[] = [];

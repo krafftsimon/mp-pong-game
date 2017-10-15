@@ -40,6 +40,15 @@ export class GameService {
         observer.next(data);
       });
     });
-    return observable
+    return observable;
+  }
+
+  getBallPosition() {
+    let observable = new Observable(observer => {
+      this.socket.on('ballPosition',  (data) => {
+        observer.next(data);
+      });
+    });
+    return observable;
   }
 }

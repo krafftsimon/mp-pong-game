@@ -2,7 +2,7 @@ class Ball {
 
   constructor(x) {
     this.x = x;
-    this.y = 20;
+    this.y = 300;
     this.xSpeed = 7;
     this.ySpeed = 7;
     this.positionBuffer = [];

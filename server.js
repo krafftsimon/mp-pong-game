@@ -24,16 +24,16 @@ const io = require('socket.io')(server);
 
 //variables
 
-let updateRate = 50;
+let updateRate = 10;
 let ballUpdateRate = 50;
 let inputs = [];
+let balls = Array(2).fill();
 let rooms = Array(2).fill();
 for (let i = 0; i < rooms.length; i++) {
+  balls[i] = new Ball(400);
   rooms[i] = {playersInRoom: [],
               player1: new Player(20),
               player2: new Player(760),
-              ball: new Ball(20),
-              ball2: new Ball(780),
               inputsP1: [],
               inputsP2: [],
               lastProcessedInputP1: 0,
@@ -126,7 +126,7 @@ function leaveRoom(socket) {
   }
 }
 
-//game physics loop
+// Game physics loop for everything except the ball.
 setInterval(function() {
   for (let i in rooms) {
     if (rooms[i].gameState === "started") {
@@ -137,19 +137,22 @@ setInterval(function() {
   sendGameState();
 }, 1000 / updateRate);
 
+
+// Loop for ball movements.
 setInterval(function() {
   for (let i in rooms) {
     if (rooms[i].gameState === "started") {
       moveBall(i);
-      if (rooms[i].ball.x <= 10) {
+      if (balls[i].x <= 10) {
         rooms[i].pointsP2++;
         countDown(i);
-      } else if (rooms[i].ball.x >= 790) {
+      } else if (balls[i].x >= 790) {
         rooms[i].pointsP1++;
         countDown(i);
       }
     }
   }
+  sendBallPosition();
 }, 1000 / ballUpdateRate);
 
 function processInputs(i) {
@@ -165,10 +168,7 @@ function processInputs(i) {
 
 function moveBall(i) {
   // Move the ball.
-  rooms[i].ball.move(rooms[i].player1, rooms[i].player2);
-  //rooms[i].ball2.move(rooms[i].player1, rooms[i].player2);
-  // Save the new position of the ball.
-  //rooms[i].ballSteps.push({x: rooms[i].ball.x, y: rooms[i].ball.y});
+  balls[i].move(rooms[i].player1, rooms[i].player2);
 }
 
 function spawnPowerups(i) {
@@ -201,9 +201,16 @@ function sendGameState() {
   }
 }
 
+function sendBallPosition() {
+  io.sockets.emit('ballPosition', balls);
+}
+
 function countDown(i) {
   //rooms[i].gameState = "started";
   rooms[i].gameState = "starting";
+  // Reset ball position
+  balls[i].x = 400;
+  balls[i].y = 300;
   setTimeout(function() {
     rooms[i].gameState = "started";
   }, 3000);

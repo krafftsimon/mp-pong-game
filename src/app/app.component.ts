@@ -28,7 +28,6 @@ export class AppComponent {
   pendingInputs = []; //Inputs awaiting to be confirmed by the server
   ballSteps = [];
   inputNumber: number = 0;
-  serverData;
   serverBall: Ball;
   serverlastProcessedInput;
   canvasCtx: CanvasRenderingContext2D;
@@ -41,12 +40,14 @@ export class AppComponent {
   countDownStarted: boolean = false;
   pointsP1: string = "0";
   pointsP2: string = "0";
+  powerupIconSize: number = 64;
   paddleSound;
   wallSound;
   growIcon;
   shrinkIcon;
   duplicateIcon;
   accelerateIcon;
+  serverData;
 
   constructor(private gameService: GameService, private renderer: Renderer2) {
     this.player1 = new Player(20);
@@ -57,18 +58,33 @@ export class AppComponent {
     this.paddleSound.src = '../assets/Sound - Headshot 1x.mp3';
     this.paddleSound.volume = 0.2
     this.paddleSound.load();
-    this.wallSound = new Audio();
-    this.wallSound.src = '../assets/Sound - Bodyshot 1x.mp3';
-    this.wallSound.volume = 0.1
-    this.wallSound.load();
-    this.growIcon = new Image();
-    this.growIcon.src = '../assets/grow.jpg'
-    this.shrinkIcon = new Image();
-    this.shrinkIcon.src = '../assets/shrink.jpg'
-    this.duplicateIcon = new Image();
-    this.duplicateIcon.src = '../assets/duplicate.jpg'
-    this.accelerateIcon = new Image();
-    this.accelerateIcon.src = '../assets/accelerate.jpg'
+    //this.wallSound = new Audio();
+    //this.wallSound.src = '../assets/Sound - Bodyshot 1x.mp3';
+    //this.wallSound.volume = 0.1
+    //this.wallSound.load();
+    //this.growIcon = new Image();
+    //this.growIcon.src = '../assets/grow.jpg'
+    //this.shrinkIcon = new Image();
+    //this.shrinkIcon.src = '../assets/shrink.jpg'
+    //this.duplicateIcon = new Image();
+    //this.duplicateIcon.src = '../assets/duplicate.jpg'
+    //this.accelerateIcon = new Image();
+    //this.accelerateIcon.src = '../assets/accelerate.jpg'
+    this.serverData = {playersInRoom: [],
+                  player1: new Player(20),
+                  player2: new Player(760),
+                  inputsP1: [],
+                  inputsP2: [],
+                  lastProcessedInputP1: 0,
+                  lastProcessedInputP2: 0,
+                  ballSteps: [],
+                  pointsP1: 0,
+                  pointsP2: 0,
+                  gameState: "waitingForPlayer",
+                  powerupOnBoard: 0,  // 0 - none, 1 - grow, 2 - shrink, 3 - duplicate, 4 - slow, 5 - fast
+                  powerupsActive:[false, false, false, false, false],
+                  powerupX: 200,
+                  powerupY: 200};
   }
 
   @ViewChild("gameCanvas") canvas: ElementRef;
@@ -131,6 +147,8 @@ export class AppComponent {
 
   updateGame() {
     if (this.serverData.gameState === "starting" && !this.countDownStarted) {
+      this.player1.y = 250;
+      this.player2.y = 250;
       this.startCountDown();
       this.countDownStarted = true;
     }
@@ -158,7 +176,8 @@ export class AppComponent {
   processServerData() {
     // Reconciliation.
     if (this.clientPlayerNum === 1) {
-      this.player1.y = this.serverData.player1.y
+      this.player1.y = this.serverData.player1.y;
+      this.player1.length = this.serverData.player1.length;
       this.interpolationInputs = this.serverData.inputsP2; // Save inputs of other player for interpolation
       let i = 0;
       while (i < this.pendingInputs.length) {
@@ -170,7 +189,8 @@ export class AppComponent {
         }
       }
     } else if (this.clientPlayerNum === 2) {
-      this.player2.y = this.serverData.player2.y
+      this.player2.y = this.serverData.player2.y;
+      this.player2.length = this.serverData.player2.length;
       this.interpolationInputs = this.serverData.inputsP1; // Save inputs of other player for interpolation
       let i = 0;
       while (i < this.pendingInputs.length) {
@@ -185,9 +205,8 @@ export class AppComponent {
   }
 
   processUserInputs() {
-    // Client-side prediction for the ball. Based on the position and speed of the server-side ball.
-    this.ball.x = this.serverBall.x //+ this.ballMovementCounter * this.serverData.ball.xSpeed;
-    this.ball.y = this.serverBall.y //+ this.ballMovementCounter * this.serverData.ball.ySpeed;
+    this.ball.x = this.serverBall.x
+    this.ball.y = this.serverBall.y
     if (this.ball.x <= 50) {
       if (this.ball.y >= this.player1.y - 10 && this.ball.y <= this.player1.y + 115) {
         this.paddleSound.play();
@@ -199,11 +218,6 @@ export class AppComponent {
       }
     }
 
-    //this.ballMovementCounter++;
-    //this.ball2.x = this.serverData.ball2.x
-    //this.ball2.y = this.serverData.ball2.y
-
-    //this.ball.move(this.player1, this.player2);
     if (this.direction === 0) {
       return
     }
@@ -228,12 +242,6 @@ export class AppComponent {
   }
 
   interpolate() {
-    //if (this.ballSteps.length > 0) {
-    //  this.ball.x = this.ballSteps[0].x;
-    //  this.ball.y = this.ballSteps[0].y;
-    //  this.ballSteps.shift();
-    //}
-
 
     if (this.interpolationInputs.length > 0) {
       if (this.clientPlayerNum === 1) {
@@ -279,29 +287,32 @@ export class AppComponent {
     this.canvasCtx.lineTo(400, 600);
     this.canvasCtx.stroke();
 
+    // Waiting for players message.
     if (this.serverData.gameState === "waitingForPlayer") {
       this.canvasCtx.fillStyle="black";
       this.canvasCtx.font = "30px Comic Sans MS";
-      this.canvasCtx.fillText("Waiting for an opponent.", 220, 300);
+      this.canvasCtx.fillText("Waiting for an opponent.", 220, 250);
     }
+
+    // Count down numbers.
     if (this.serverData.gameState === "starting") {
       this.canvasCtx.fillStyle="black";
       this.canvasCtx.font = "60px Comic Sans MS";
-      this.canvasCtx.fillText(this.countDown, 380, 300);
+      this.canvasCtx.fillText(this.countDown, 380, 250);
     }
 
     // Powerups.
-    if (this.serverData.powerupOnBoard === 1) {
-      this.canvasCtx.drawImage(this.growIcon, this.serverData.powerupX, this.serverData.powerupY, 32, 32);
-    } else if (this.serverData.powerupOnBoard === 2) {
-      this.canvasCtx.drawImage(this.shrinkIcon, this.serverData.powerupX, this.serverData.powerupY, 32, 32);
-    } else if (this.serverData.powerupOnBoard === 3) {
-      this.canvasCtx.drawImage(this.duplicateIcon, this.serverData.powerupX, this.serverData.powerupY, 32, 32);
-    } else if (this.serverData.powerupOnBoard === 4) {
-      this.canvasCtx.drawImage(this.accelerateIcon, this.serverData.powerupX, this.serverData.powerupY, 32, 32);
-    } else if (this.serverData.powerupOnBoard === 5) {
-      this.canvasCtx.drawImage(this.growIcon, this.serverData.powerupX, this.serverData.powerupY, 32, 32);
-    }
+    //if (this.serverData.powerupOnBoard === 1) {
+    //  this.canvasCtx.drawImage(this.growIcon, this.serverData.powerupX, this.serverData.powerupY, this.powerupIconSize, this.powerupIconSize);
+    //} else if (this.serverData.powerupOnBoard === 2) {
+    //  this.canvasCtx.drawImage(this.shrinkIcon, this.serverData.powerupX, this.serverData.powerupY, this.powerupIconSize, this.powerupIconSize);
+    //} else if (this.serverData.powerupOnBoard === 3) {
+    //  this.canvasCtx.drawImage(this.duplicateIcon, this.serverData.powerupX, this.serverData.powerupY, this.powerupIconSize, this.powerupIconSize);
+    //} else if (this.serverData.powerupOnBoard === 4) {
+    //  this.canvasCtx.drawImage(this.accelerateIcon, this.serverData.powerupX, this.serverData.powerupY, this.powerupIconSize, this.powerupIconSize);
+    //} else if (this.serverData.powerupOnBoard === 5) {
+    //  this.canvasCtx.drawImage(this.growIcon, this.serverData.powerupX, this.serverData.powerupY, this.powerupIconSize, this.powerupIconSize);
+    //}
 
 
     // Paddles and Ball shadow.
@@ -331,8 +342,8 @@ export class AppComponent {
     this.canvasCtx.fillStyle="#691A99";
     this.canvasCtx.lineWidth=2;
     this.canvasCtx.strokeStyle="grey";
-    this.canvasCtx.rect(this.player1.x, this.player1.y, 20, 105);
-    this.canvasCtx.rect(this.player2.x, this.player2.y, 20, 105);
+    this.canvasCtx.rect(this.player1.x, this.player1.y, this.serverData.player1.width, this.serverData.player1.length);
+    this.canvasCtx.rect(this.player2.x, this.player2.y, this.serverData.player2.width, this.serverData.player2.length);
     this.canvasCtx.fill();
     this.canvasCtx.stroke();
 

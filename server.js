@@ -28,6 +28,7 @@ let updateRate = 10;
 let ballUpdateRate = 50;
 let inputs = [];
 let balls = Array(2).fill();
+let timers = Array(2).fill();
 let rooms = Array(2).fill();
 for (let i = 0; i < rooms.length; i++) {
   balls[i] = new Ball(400);
@@ -101,7 +102,7 @@ function joinRoom(socket) {
     nickname = "player2";
   } else {
     rooms[i].playersInRoom.push("player1");
-    nickname = "player2";
+    nickname = "player1";
   }
   socket.nickname = nickname;
   // Send this event to everyone in the room.
@@ -116,14 +117,14 @@ function joinRoom(socket) {
 function leaveRoom(socket) {
   let room = Object.keys(socket.rooms);
   let roomNumber = room[1].charAt(5);
+
   console.log(socket.nickname + " left room number " + roomNumber)
-  // Get the room object corresponding to the room that was left.
-  //let room = io.sockets.adapter.rooms[roomLeft[1]];
   if (rooms[roomNumber - 1].playersInRoom.indexOf(socket.nickname) === 0) {
     rooms[roomNumber - 1].playersInRoom.splice(0, 1);
   } else if (rooms[roomNumber - 1].playersInRoom.indexOf(socket.nickname) === 1) {
     rooms[roomNumber - 1].playersInRoom.splice(1, 1);
   }
+  restartGame(roomNumber, rooms[roomNumber - 1].playersInRoom);
 }
 
 // Game physics loop for everything except the ball.
@@ -143,6 +144,24 @@ setInterval(function() {
   for (let i in rooms) {
     if (rooms[i].gameState === "started") {
       moveBall(i);
+      // Check if there is a powerup on the board.
+      //if (rooms[i].powerupOnBoard != 0) {
+      //  // Check if a powerup was picked up.
+      //  if (balls[i].x >= rooms[i].powerupX &&
+      //      balls[i].x <= rooms[i].powerupX + 64 &&
+      //      balls[i].y >= rooms[i].powerupY &&
+      //      balls[i].y <= rooms[i].powerupY + 64) {
+      //        // Check which side the powerup is on.
+      //        if (rooms[i].powerupX + 32 < 400) {
+      //          applyPowerup(i, "player1");
+      //        } else {
+      //          applyPowerup(i, "player2");
+      //        }
+      //        rooms[i].powerupsActive[rooms[i].powerupOnBoard] = true
+      //        rooms[i].powerupOnBoard = 0;
+      //  }
+      //}
+      // Check if someone scored.
       if (balls[i].x <= 10) {
         rooms[i].pointsP2++;
         countDown(i);
@@ -175,22 +194,33 @@ function spawnPowerups(i) {
   // Check if there already is a powerup on the board.
   if (rooms[i].powerupOnBoard === 0) {
     let randomNum = Math.floor((Math.random() * 1000));
-    if (randomNum < 10) {
+    if (randomNum < 5) {
       rooms[i].powerupOnBoard = 1;
-    } else if (randomNum < 20) {
+    } else if (randomNum < 10) {
       rooms[i].powerupOnBoard = 2;
-    } else if (randomNum < 30) {
+    } else if (randomNum < 15) {
       rooms[i].powerupOnBoard = 3;
-    } else if (randomNum < 40) {
+    } else if (randomNum < 20) {
       rooms[i].powerupOnBoard = 4;
-    } else if (randomNum < 50) {
+    } else if (randomNum < 25) {
       rooms[i].powerupOnBoard = 5;
     }
-    rooms[i].powerupX = Math.floor(Math.random() * 700) + 100;
-    rooms[i].powerupY = Math.floor(Math.random() * 550) + 50;
+    rooms[i].powerupX = Math.floor(Math.random() * 400) + 200;
+    rooms[i].powerupY = Math.floor(Math.random() * 400) + 100;
   }
 }
 
+function applyPowerup(i, playerNum) {
+  if (rooms[i].powerupOnBoard === 1) {
+    rooms[i][playerNum].length = 210;
+  } else if (rooms[i].powerupOnBoard === 2) {
+    rooms[i][playerNum].length = 105;
+  } else if (rooms[i].powerupOnBoard === 3) {
+    rooms[i][playerNum].length = 52.5;
+  } else if (rooms[i].powerupOnBoard === 4) {
+    rooms[i][playerNum].length = 420;
+  }
+}
 function sendGameState() {
   io.sockets.emit('gameState', rooms);
   //clear list of inputs received and ball steps for the next update
@@ -206,14 +236,38 @@ function sendBallPosition() {
 }
 
 function countDown(i) {
-  //rooms[i].gameState = "started";
   rooms[i].gameState = "starting";
-  // Reset ball position
+  // Reset paddle position.
+  rooms[i].player1.y = 250;
+  rooms[i].player2.y = 250;
+  // Reset ball position.
   balls[i].x = 400;
   balls[i].y = 300;
-  setTimeout(function() {
+  balls[i].ySpeed = 0;
+  balls[i].xSpeed = 10;
+  timers[i] = setTimeout(function() {
     rooms[i].gameState = "started";
   }, 3000);
+}
+
+function restartGame(roomNum, playersInRoom) {
+  clearTimeout(timers[roomNum - 1]);
+  rooms[roomNum - 1] = {playersInRoom: playersInRoom,
+                    player1: new Player(20),
+                    player2: new Player(760),
+                    inputsP1: [],
+                    inputsP2: [],
+                    lastProcessedInputP1: 0,
+                    lastProcessedInputP2: 0,
+                    ballSteps: [],
+                    pointsP1: 0,
+                    pointsP2: 0,
+                    gameState: "waitingForPlayer",
+                    powerupOnBoard: 0,  // 0 - none, 1 - grow, 2 - shrink, 3 - duplicate, 4 - slow, 5 - fast
+                    powerupsActive:[false, false, false, false, false],
+                    powerupX: 200,
+                    powerupY: 200};
+
 }
 
 server.listen(port, () => console.log(`Running on localhost:${port}`));

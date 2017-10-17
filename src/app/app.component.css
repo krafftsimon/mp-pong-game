@@ -3,3 +3,7 @@ canvas {
   margin: 40px auto;
   display: block;
 }
+
+h1 {
+  text-align: center;
+}

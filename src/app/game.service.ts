@@ -6,7 +6,7 @@ import * as io from 'socket.io-client';
 @Injectable()
 export class GameService {
   private devUrl = 'http://localhost:4400';
-  private prodUrl = 'http://35.193.240.128:4400';
+  private prodUrl = 'http://pong.krafftsimon.com';
   private url = this.prodUrl;
   private socket;
 
